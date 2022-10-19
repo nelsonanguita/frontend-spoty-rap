@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <HelloWorld msg="Welcome to Your SpotyRaApp"/>
+    <HelloWorld msg=""/>
   </div>
 </template>
 

@@ -22,7 +22,10 @@
           />
         </div>
 
-        <h2 class="player__artist">Disclosure</h2>
+  
+
+
+        <h2 class="player__artist">Nombre grupo</h2>
         <h3 class="player__song">{{ songTrack }}</h3>
 
         <input
@@ -37,14 +40,8 @@
           controls="true"
         />
         <div class="audio-duration">
-          <div class="start">00:01</div>
-          <div >{{currentTime}}</div>
-
-           <span class="current-time">{{ currentTime }}</span
-          ><span class="duration">{{ duration }}</span>
-          <div > "        "</div>
-
-          <div class="end">04:32</div>
+          <div class="start">{{ currentTime }}</div>
+          <div class="end">{{ duration }}</div>
         </div>
 
         <audio  class="player__audio" controls id="audio" >
@@ -53,7 +50,7 @@
 
         <div class="player__controls">
           <div
-            @click="getPreviusTrack()"
+            @click="skip('')"
             class="player__btn player__btn--medium"
             id="backward"
           >
@@ -61,16 +58,18 @@
           </div>
 
           <div
-            @click="getPlay()"
+            
+            @click="playing ? pause() : play()"
             class="player__btn player__btn--medium blue play"
             id="player"
           >
-            <i class="fas fa-play play-btn"></i>
-            <i class="fas fa-pause pause-btn hide"></i>
+         
+            <i v-if="!playing" class="fas fa-play play-btn"></i>
+            <i v-else class="fas fa-pause pause-btn "></i>
           </div>
 
           <div
-            @click="getNextTrack()"
+            @click="skip('next')"
             class="player__btn player__btn--medium"
             id="forward"
           >
@@ -83,7 +82,10 @@
 </template>
 
 <script>
+import {Howl} from 'howler';
 import axios from "axios";
+
+
 export default {
   name: "HelloWorld",
   props: {
@@ -91,11 +93,14 @@ export default {
   },
   data() {
     return {
-      trackList: [],
+      trackList: [
+       //{src:'http://localhost:3000/tracks/6340ae963543d07d7e184889'}
+
+      ],
       urltrack: "http://localhost:3000/tracks/6340ae963543d07d7e184889",
       player: new Audio(),
-      currentTrack: "6340ae963543d07d7e184889",
-      songTrack: "xxx",
+     // currentTrack: "6340ae963543d07d7e184889",
+      songTrack: "",
       position: 0,
       seekbar: {
         max: 100,
@@ -110,86 +115,82 @@ export default {
         volume: 50,
         favourite: false,
       },
+      playing:false,
+      audio: new Audio(),
+      playlist:[],
+      index:0,
+      seek:0,
     };
   },
   mounted() {
-   console.log("mounted")
-
-    this.$nextTick(()=>{
+    setTimeout(()=>{
       this.music.element = document.querySelector(".player__audio");
-      this.music.element.addEventListener("ended", () => {
-      this.currentTime = "0:00";
-      this.music.element.currentTime = 0;
-    });
 
-    this.music.element.addEventListener("loadedmetadata", (e) => {
-      var duration = this.music.element.duration;
-      //console.log(this.music);
-      this.seekbar.max = duration
-      console.log(e.currentTarget.duration);
-    });
-
-
-
-    //this.music.element.addEventListener("loadedmetadata", function() {
-          //var duration = this.music.element.duration;
-           //console.log(this.music);
-           // this.seekbar.max = duration
-    //});
-
-    this.music.element.onloadeddata = () => {
-            //this.seekbar.max = this.music.element.duration;
-      this.seekbar.max =this.music.element.duration;//141.424508
-      this.duration =
-        (parseInt(this.seekbar.max / 60) % 60) +
-        ":" +
-        parseInt(this.seekbar.max % 60);
-    };
-    this.music.element.ontimeupdate = () => {
-      this.seekbar.value = this.music.element.currentTime;
-    };
-        this.music.element.addEventListener(
-      'timeupdate',
-      () => {
-        let cs = parseInt(this.music.element.currentTime % 60);
-        let cm = parseInt((this.music.element.currentTime / 60) % 60);
-        if (cs <= 9) {
-          cs = `0${cs}`;
-        }
-        this.currentTime = cm + ':' + cs;
-      },
-      false
-    );
-    })
+      console.log("duracion cancion mounted "+this.music.element.duration)
+    },2000)
+    
+  },
+  computed: {
+    currentTrack() {
+      return this.trackList[this.index]
+    }
+  },
+  watch:{
+    songTrack: function() {
+      //this.geTtimeTrack()
+     
+    },
+    playings(playing) {
+      
+    this.seek = this.currentTrack.howl.seek()
+    let updateSeek
+    if (playing) {
+      updateSeek = setInterval(() => {
+        this.seek = this.currentTrack.howl.seek()
+        
+      }, 250)
+    } else {
+      clearInterval(updateSeek)
+    }
+    this.seekbar= updateSeek
+  },
+    
   },
   methods: {
     async getTracks() {
-      let response = await axios.get("http://localhost:3000/tracks");
+      let response = await axios.get("https://backend-spotyrap-production.up.railway.app/tracks");
       this.trackList = response.data;
-      this.player.src = this.currentTrack;
-      this.player.load();
+      //this.player.src = this.currentTrack;
+     // this.player.load();
+      //console.log("lista creada")
+      this.createList()
     },
     getPlay() {
       this.player.src = this.urltrack;
-      
       this.player.play();
 
       this.position = this.trackList
         .map((e) => e._id)
         .indexOf(this.currentTrack);
-      this.songTrack = this.trackList[this.position].filename;
 
+      this.songTrack = this.trackList[this.position].filename;
+      
+      this.geTtimeTrack()
+     
     },
     async getTrackById(id) {
       try {
         let response = await axios.get(`http://localhost:3000/tracks/${id}`);
-        let song = response.data;
 
-        this.songTrack = song[this.position].filename;
+        this.songTrack = this.trackList[this.position].filename;
+        
         this.currentTrack = id;
-
+        
         this.player.src = response.config.url;
+        this.player.load();
         this.player.play();
+
+        this.geTtimeTrack()
       } catch (error) {
         console.log(error);
       }
@@ -201,7 +202,7 @@ export default {
             .map((e) => e._id)
             .indexOf(this.currentTrack);
           this.position++;
-          console.log(this.position)
+
           let id = this.trackList[this.position]._id;
           this.getTrackById(id);
         }
@@ -223,10 +224,201 @@ export default {
         console.log(error);
       }
     },
+    geTtimeTrack(){
+
+
+      setTimeout(()=>{
+        this.music.element = document.querySelector(".player__audio");
+      console.log("elemntos "+this.music.element)
+
+      },2000)
+      
+      //console.log("cancion nombre "+this.music.element.duration)
+      
+     // setInterval(()=>{
+        //console.log("tiempo currenttime "+this.music.element.currentTime)
+     // },200)
+  
+     // this.music.element.onloadeddata = () => {
+            //this.seekbar.max = this.music.element.duration;
+
+      this.seekbar.max =this.music.element.duration;//141.424508
+      this.duration =
+        (parseInt(this.seekbar.max / 60) % 60) +
+        ":" +
+        parseInt(this.seekbar.max % 60);
+    //};
+   
+    },
+    play2: function () {
+      console.log("play");
+      
+      if (this.seek==0) {
+              console.log("nuevo tema")
+              //this.audio.unload();
+              this.audio = new Howl({
+                src: this.trackList.howl.src,
+                preload: true,
+                //autoplay: true,
+                html5: true,
+                //volume: 0.5,
+                //rate: 1.0,
+                onend: function() {
+                   // this.playing = false
+                        console.log('Finished!');
+                }
+
+            })
+            
+            this.audio.play();
+            this.index = this.audio.play()
+            setTimeout(() => {
+              let minutos = this.formatTime(this.music.element.duration)              
+              this.duration = minutos
+              console.log(minutos)
+            }, 2000);
+
+            
+            }else{
+             
+             
+              this.audio.seek(this.seek);
+              this.audio.play(this.index);
+              this.seek=0
+              console.log(this.audio.play(this.index))
+
+            }
+           
+
+            this.playing = true
+           // console.log(this.audio.this.playlist[this.audio.ind])
+
+        },
+    pause2: function () {
+          console.log("pause")
+
+          //this.playlist.push(this.urltrack)
+        
+          // Get the Howl we want to manipulate.
+         // var sound = this.playlist.howl;
+         //console.log(this.playlist[].Howl)
+          //this.index = this.
+         // var sound = self.playlist[self.index].howl;
+         
+         this.audio.Howl.pause()
+         //this.audio.pause(this.index); //hay que agregar un ID para la pausa 
+          this.seek = this.audio.seek()
+          this.playing = false
+        },
+      
+    formatTime: function(secs) {
+       //s if (!secs || typeof value !== "number") return "00:00"
+
+        let min = parseInt(secs / 60),
+            sec = parseInt(secs % 60)
+        min = min < 10 ? "0" + min : min
+        sec = sec < 10 ? "0" + sec : sec
+        secs = min + ":" + sec
+        
+        return secs
+
+        },
+    createList: function () {
+      this.trackList.forEach(  (track) => {
+          let fileUrl = track._id
+                    track.howl = new Howl({
+            src: [`https://backend-spotyrap-production.up.railway.app/tracks/${fileUrl}`],
+            preload:true,
+            html5:true
+            
+          })
+        })
+        
+    },
+    play (index) {
+     // index=''
+      let selectedTrackIndex = this.trackList.findIndex(track => track === this.selectedTrack)
+      if (typeof index === 'number') {
+        //index = index
+
+      } else if (this.selectedTrack) {
+        if (this.selectedTrack != this.currentTrack) {
+          this.stop()
+
+        }
+        index = selectedTrackIndex
+      } else {
+        index = this.index
+      }
+    
+      let track = this.trackList[index].howl
+
+      if (track.playing()) {
+        return
+      } else {
+        track.play()
+      }
+      
+      this.selectedTrack = this.trackList[index]
+      this.playing = true
+      this.index = index
+      this.songTrack = this.currentTrack.filename
+      
+      setTimeout(()=>{
+            
+          this.duration = this.formatTime(track.duration())
+            console.log(parseInt(track.duration()))
+            
+            let x = this.currentTrack.howl.duration()
+            return x;
+            //console.log(this.currentTrack.howl.duration())
+          },3000)
+    },
+    pause () {
+      this.currentTrack.howl.pause()
+      this.playing = false
+      console.log("pause")
+
+    },
+    stop () {
+      this.currentTrack.howl.stop()
+      this.playing = false
+    },
+    skip (direction) {
+
+      let index = 0
+      if (direction === "next") {
+        index = this.index + 1
+        if (index >= this.trackList.length) {
+          index-=-1
+          return;
+          //index = 0
+        }
+      } else {
+        index = this.index - 1
+        if (index < 0) {
+          index=0
+          return;
+          //index = this.trackList.length - 1
+        }
+      }
+
+      this.skipTo(index)
+    },
+    skipTo (index) {
+      if (this.currentTrack) {
+        this.currentTrack.howl.stop()
+      }
+     this.play(index)
+    }
   },
 
   created() {
+   
     this.getTracks();
+    //this.playlist.push(this.urltrack)
+    //console.log("this.playlist")
+    //console.log(this.playlist)
   },
 };
 </script>
@@ -348,7 +540,11 @@ img {
   border: none;
   padding: 0;
   margin-top: 40px;
+
 }
+
+
+
 
 .player__level::-webkit-slider-runnable-track {
   background-color: #d7dbdd;
