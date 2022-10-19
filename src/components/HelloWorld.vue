@@ -406,7 +406,7 @@ img {
 }
 
 .player__level {
-  width: 100%;
+  width: 80%;
   -webkit-appearance: none;
   outline: none;
   border: none;
