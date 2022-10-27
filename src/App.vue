@@ -1,16 +1,20 @@
 <template>
   <div id="app">
+    <Borrar/>
     <HelloWorld msg=""/>
+    
   </div>
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
+import Borrar from './components/Borrar.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    HelloWorld,
+    Borrar
   }
 }
 </script>

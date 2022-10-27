@@ -22,10 +22,7 @@
           />
         </div>
 
-  
-
-
-        <h2 class="player__artist">Nombre grupo</h2>
+        <h2 class="player__artist">{{nombreGrupo}}</h2>
         <h3 class="player__song">{{ songTrack }}</h3>
 
         <input
@@ -91,6 +88,7 @@ export default {
   },
   data() {
     return {
+      nombreGrupo:'',
       trackList: [],
       //urltrack: "http://localhost:3000/tracks/6340ae963543d07d7e184889",
       player: new Audio(),
@@ -237,7 +235,8 @@ export default {
       this.playing = true
       this.index = index
       this.songTrack = this.currentTrack.filename
-      
+      this.nombreGrupo = this.currentTrack.metadata.artist
+      console.log(this.currentTrack)
       setTimeout(()=>{
             
           this.duration = this.formatTime(track.duration())
