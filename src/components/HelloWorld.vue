@@ -167,7 +167,7 @@ export default {
     async getTracks() {
 
       try {
-        let response = await axios.get("https://backend-spotyrap-production.up.railway.app/tracks");
+        let response = await axios.get("https://backend-spotyrap-production.up.railway.app/api/v1/tracks");
         this.trackList = response.data;
         this.createList()  
 
@@ -192,7 +192,7 @@ export default {
       this.trackList.forEach(  (track) => {
           let fileUrl = track._id
                     track.howl = new Howl({
-            src: [`https://backend-spotyrap-production.up.railway.app/tracks/${fileUrl}`],
+            src: [`https://backend-spotyrap-production.up.railway.app/api/v1/tracks/${fileUrl}`],
             onend: () => {
               if (this.loop) {
                 this.play(this.index)
