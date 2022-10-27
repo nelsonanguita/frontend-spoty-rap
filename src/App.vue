@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Borrar/>
+    <CargarTrack/>
     <HelloWorld msg=""/>
     
   </div>
@@ -8,13 +8,13 @@
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
-import Borrar from './components/Borrar.vue'
+import CargarTrack from "./components/CargarTrack.vue";
 
 export default {
   name: 'App',
   components: {
     HelloWorld,
-    Borrar
+    CargarTrack
   }
 }
 </script>
