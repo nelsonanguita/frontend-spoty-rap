@@ -1,7 +1,7 @@
 <template>
     <div>
   
-        <form action="https://backend-spotyrap-production.up.railway.app/tracks" enctype="multipart/form-data" method="POST">
+        <form action="https://backend-spotyrap-production.up.railway.app/api/v1/tracks" enctype="multipart/form-data" method="POST">
             <input type="file" name="tracks" multiple >
             <input type="submit" value="Upload track">
         </form>
